@@ -1,12 +1,22 @@
 {
   "name": "strawberry-github-app-server",
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "description": "Production-grade GitHub App webhook receiver for Strawberry orchestration",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "test": "node --test test/",
+    "test:webhook": "node test/webhook.test.js",
+    "lint": "echo 'TODO: add eslint'",
+    "health": "curl -sS http://localhost:${PORT:-3000}/health"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "body-parser": "^1.20.2"
-  }
+    "express": "^4.21.0"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "license": "MIT"
 }

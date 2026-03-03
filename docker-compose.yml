@@ -1,15 +1,65 @@
+# docker-compose.yml — Production-ready local development and scaling config
+# Usage:
+#   Local dev:     docker compose up
+#   Scale test:    docker compose up --scale webhook-server=3
+#   Production:    docker compose --profile production up
+
 version: '3.8'
+
 services:
+  # ── Webhook Server (scalable) ──────────────────────────────────────────
   webhook-server:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
     ports:
       - "3000:3000"
     environment:
-      - PORT=3000
-      - GITHUB_APP_SECRET=${GITHUB_APP_SECRET:-}
-    restart: unless-stopped
+      PORT: 3000
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      NODE_ENV: ${NODE_ENV:-production}
+      GITHUB_APP_SECRET: ${GITHUB_APP_SECRET:-}
+      GRACEFUL_SHUTDOWN_TIMEOUT: "10000"
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 5
+        window: 120s
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:3000/health" ]
+      test: [ "CMD-SHELL", "curl -f http://localhost:3000/health || exit 1" ]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+  # ── Load Balancer (for scaling) ────────────────────────────────────────
+  nginx:
+    image: nginx:alpine
+    profiles: [ "scale" ]
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      webhook-server:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:80/health" ]
       interval: 30s
       timeout: 5s
       retries: 3
