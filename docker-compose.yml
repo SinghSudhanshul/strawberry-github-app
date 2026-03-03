@@ -1,0 +1,15 @@
+version: '3.8'
+services:
+  webhook-server:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - GITHUB_APP_SECRET=${GITHUB_APP_SECRET:-}
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:3000/health" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3

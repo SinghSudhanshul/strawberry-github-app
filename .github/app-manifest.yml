@@ -1,0 +1,24 @@
+# .github/app-manifest.yml
+name: strawberry-mgr-app
+url: https://your-public-host-or-placeholder.example.com
+hook_attributes:
+  url: https://your-public-host-or-placeholder.example.com/webhook
+  active: true
+redirect_url: https://your-public-host-or-placeholder.example.com/after-app-created
+default_permissions:
+  contents: write
+  pull_requests: write
+  issues: write
+  checks: write
+  actions: read
+default_events:
+  - pull_request
+  - push
+  - check_run
+  - check_suite
+permissions:
+  contents: write
+  issues: write
+  pull_requests: write
+  checks: write
+  actions: read
